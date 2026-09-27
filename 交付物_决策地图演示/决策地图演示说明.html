@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>决策地图 · 交付与演示说明 — 赣鄱智轨</title>
+<style>
+  :root{
+    --bg:#0c1420; --bg-soft:#0f1a2a;
+    --ink:#e8eef5; --muted:#8fa3b8; --faint:#5b7089;
+    --line:rgba(255,255,255,.09);
+    --accent:#2ec9e8;
+    --c-red:#ff3344; --c-orange:#ff8800; --c-yellow:#ffcc00; --c-green:#00ff88;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Source Han Sans SC",sans-serif;
+    font-size:15px; line-height:1.7;
+  }
+  .page{
+    display:grid; grid-template-columns:212px minmax(0,1fr);
+    max-width:1180px; margin:0 auto; padding:0 32px;
+  }
+  /* ---- 侧栏目录 ---- */
+  .toc{ position:sticky; top:0; align-self:start; padding:112px 26px 40px 0; }
+  .toc .t-kicker{
+    font-family:Consolas,"Courier New",monospace; font-size:10.5px;
+    letter-spacing:.14em; color:var(--faint); text-transform:uppercase;
+    display:block; margin-bottom:14px;
+  }
+  .toc a{
+    display:block; color:var(--muted); text-decoration:none;
+    font-size:12.5px; padding:5px 0; line-height:1.5;
+  }
+  .toc a:hover{ color:var(--accent); }
+  .toc a .no{
+    font-family:Consolas,"Courier New",monospace; font-size:11px;
+    color:var(--faint); margin-right:9px;
+  }
+  /* ---- 正文 ---- */
+  .doc{ min-width:0; padding:92px 0 48px; }
+  .kicker{
+    font-family:Consolas,"Courier New",monospace; font-size:11.5px;
+    letter-spacing:.12em; color:var(--accent); display:block;
+  }
+  h1{
+    font-size:38px; line-height:1.3; font-weight:600;
+    letter-spacing:.01em; margin:20px 0 18px; max-width:760px;
+  }
+  .lede{ font-size:16px; line-height:1.8; color:#c6d3e2; max-width:680px; }
+  .meta{
+    margin-top:36px; padding-top:16px; border-top:1px solid var(--line);
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px 28px;
+    font-size:12.5px; color:var(--muted);
+  }
+  .meta b{ display:block; color:var(--faint); font-weight:400; font-size:11px;
+    font-family:Consolas,"Courier New",monospace; letter-spacing:.06em; margin-bottom:3px; }
+  .meta .mono{ font-family:Consolas,"Courier New",monospace; font-size:12px; color:#c6d3e2; }
+
+  h2{ font-size:21px; font-weight:600; margin:68px 0 0; letter-spacing:.01em; }
+  h2 .no{ font-family:Consolas,"Courier New",monospace; font-size:14px;
+    color:var(--faint); margin-right:12px; font-weight:400; }
+  .h2rule{ height:1px; background:var(--line); margin:12px 0 24px; }
+  section p{ max-width:680px; margin:0 0 14px; color:#d4dfeb; }
+  section p.small{ font-size:13px; color:var(--muted); }
+  a{ color:var(--accent); text-decoration:none; }
+  a:hover{ text-decoration:underline; }
+  code{
+    font-family:Consolas,"Courier New",monospace; font-size:.88em;
+    color:#bcd7ea; background:rgba(255,255,255,.05);
+    padding:1px 5px; border-radius:3px;
+  }
+
+  /* ---- 列表（发丝线，不做卡片）---- */
+  ul.tight{ list-style:none; max-width:780px; margin:4px 0 18px; }
+  ul.tight li{
+    padding:9px 0; border-bottom:1px solid var(--line);
+    font-size:14px; color:#d4dfeb; line-height:1.65;
+  }
+  ul.tight li b{ color:var(--ink); font-weight:600; }
+  .m{ font-family:Consolas,"Courier New",monospace; font-size:12.5px; color:#bcd7ea; }
+
+  /* ---- 步骤 ---- */
+  ol.steps{ list-style:none; max-width:780px; margin:6px 0 18px; counter-reset:st; }
+  ol.steps li{
+    position:relative; padding:12px 0 12px 56px;
+    border-bottom:1px solid var(--line); font-size:14px; line-height:1.7; color:#d4dfeb;
+  }
+  ol.steps li::before{
+    counter-increment:st; content:counter(st,decimal-leading-zero);
+    position:absolute; left:0; top:13px;
+    font-family:Consolas,"Courier New",monospace; font-size:15px; color:var(--faint);
+  }
+  .hint{
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:12px 2px; margin:22px 0; max-width:780px;
+    font-size:13px; color:var(--muted); line-height:1.75;
+  }
+  .hint b{ color:#d4dfeb; }
+
+  /* ---- 颜色档位表 ---- */
+  table.levels{ border-collapse:collapse; margin:6px 0 20px; max-width:560px; width:100%; }
+  table.levels th, table.levels td{
+    text-align:left; font-size:13px; padding:8px 14px 8px 0;
+    border-bottom:1px solid var(--line); color:#d4dfeb; font-weight:400;
+  }
+  table.levels th{ color:var(--faint); font-size:11px;
+    font-family:Consolas,"Courier New",monospace; letter-spacing:.08em; }
+  .sw{ display:inline-block; width:26px; height:8px; margin-right:10px; vertical-align:1px; }
+
+  /* ---- 流程图 ---- */
+  .flow{ margin:26px 0 30px; }
+  .flow svg{ width:100%; height:auto; display:block; }
+
+  /* ---- 截图 ---- */
+  figure{ margin:0 0 34px; }
+  figure img{ width:100%; display:block; border:1px solid var(--line); background:#0a121e; }
+  figcaption{
+    margin-top:9px; font-size:12.5px; color:var(--muted); line-height:1.7;
+    display:flex; gap:10px;
+  }
+  figcaption .fno{
+    font-family:Consolas,"Courier New",monospace; color:var(--faint); flex:0 0 auto;
+  }
+  .shotpair{ display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-bottom:34px; }
+
+  /* ---- colophon ---- */
+  .colophon{
+    margin-top:76px; padding-top:16px; border-top:1px solid var(--line);
+    font-size:12px; color:var(--faint); line-height:1.8; max-width:780px;
+  }
+
+  @media (max-width:980px){
+    .page{ grid-template-columns:1fr; padding:0 20px; }
+    .toc{ display:none; }
+    .doc{ padding-top:56px; }
+    .meta{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .shotpair{ grid-template-columns:1fr; }
+    h1{ font-size:30px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <aside class="toc">
+    <span class="t-kicker">Ganpo Zhigui · Delivery</span>
+    <a href="#s1"><span class="no">01</span>本次改动</a>
+    <a href="#s2"><span class="no">02</span>地图上看得见什么</a>
+    <a href="#s3"><span class="no">03</span>三步演示</a>
+    <a href="#s4"><span class="no">04</span>截图证据</a>
+    <a href="#s5"><span class="no">05</span>数据口径与边界</a>
+    <a href="#s6"><span class="no">06</span>文件、验证与回滚</a>
+    <a href="#s7"><span class="no">07</span>制式分段与坐标校准</a>
+  </aside>
+
+  <main class="doc">
+
+    <header class="cover">
+      <span class="kicker">赣鄱智轨 · L3 智能体层 · 前端模块交付</span>
+      <h1>决策地图：把「节假日大客流 · 枢纽换乘拥堵治理」落到地图上</h1>
+      <p class="lede">
+        智能体决策面板在节假日场景下产出分级治理方案（基准 / A / B / C / D ★）。
+        本次改动把这些决策结果叠加到百度地图上——枢纽换乘环、基准瓶颈圈、
+        线路治理色光带、方案摘要卡，并让面板的方案切换与地图实时联动。
+      </p>
+      <div class="meta">
+        <div><b>日期</b><span class="mono">2026-09-26</span></div>
+        <div><b>新增模块</b><span class="mono">js/decision-map.js</span></div>
+        <div><b>数据源</b><span class="mono">data/agent_decision_holiday.json</span></div>
+        <div><b>演示入口</b><span class="mono">bmap.html?scenario=holiday</span></div>
+      </div>
+    </header>
+
+    <section id="s1">
+      <h2><span class="no">01</span>本次改动</h2>
+      <div class="h2rule"></div>
+      <p>
+        改动前，决策面板是纯数字：方案对比、护栏判定、调用链都只在面板里，地图上没有任何表达。
+        本次新增「决策地图」图层，消费与决策面板<strong>同一份数据文件</strong>（唯一真源），
+        不引入第二套数字，所有圈层、光带、标注都能与决策文档逐一核对。
+      </p>
+      <ul class="tight">
+        <li><b>js/decision-map.js</b>（新增）— 决策结果地图渲染与交互，纯前端、零第三方依赖，仅 <span class="m">bmap.html</span> 加载。</li>
+        <li><b>bmap.html</b>（修改 1 处）— 在模块脚本区引入 <span class="m">decision-map.js</span>。</li>
+        <li><b>js/agent-decision.js</b>（修改 1 处）— 方案 Tab 切换时广播 <span class="m">gdp:planchange</span> 事件，供地图联动。</li>
+        <li><b>README.md</b>（修改 1 行）— 目录说明补充新模块条目。</li>
+      </ul>
+
+      <div class="flow">
+        <svg viewBox="0 0 960 170" role="img" aria-label="决策地图数据流：决策文档 → 决策面板 → 地图四层">
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#5b7089"></path>
+            </marker>
+          </defs>
+          <g fill="none" stroke="#3a5068" stroke-width="1">
+            <rect x="16" y="38" width="252" height="96"></rect>
+            <rect x="354" y="38" width="252" height="96"></rect>
+            <rect x="692" y="38" width="252" height="96"></rect>
+          </g>
+          <g font-size="13.5" fill="#e8eef5" font-weight="600">
+            <text x="38" y="74">决策文档（唯一真源）</text>
+            <text x="376" y="74">决策面板 · 方案 Tab</text>
+            <text x="714" y="74">决策地图 · 四层表达</text>
+          </g>
+          <g font-size="11.5" fill="#8fa3b8" font-family="Consolas,monospace">
+            <text x="38" y="98">agent_decision_holiday.json</text>
+            <text x="38" y="118">基准 / A / B / C / D ★ · 护栏与打分</text>
+            <text x="376" y="98">点击方案 → 面板重渲染</text>
+            <text x="376" y="118">并广播 gdp:planchange</text>
+            <text x="714" y="98">① 枢纽环 ② 瓶颈圈</text>
+            <text x="714" y="118">③ 线路光带 ④ 摘要卡</text>
+          </g>
+          <g stroke="#5b7089" stroke-width="1" fill="none">
+            <line x1="276" y1="86" x2="344" y2="86" marker-end="url(#ar)"></line>
+            <line x1="614" y1="86" x2="682" y2="86" marker-end="url(#ar)"></line>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <section id="s2">
+      <h2><span class="no">02</span>地图上看得见什么</h2>
+      <div class="h2rule"></div>
+      <ul class="tight">
+        <li><b>枢纽换乘环</b>（青色）— 南昌站：节假日换乘占比约 55%（换乘仿真推演）· 枢纽饱和度 0.498（仿真），即本次治理对象本身。</li>
+        <li><b>基准瓶颈圈</b>（脉冲）— <span class="m">baseline.top_bottlenecks</span> 前 5 站：庐山 1.196 / 婺源 0.994 / 上饶 0.957 / 庐山西海 0.820 / 大觉山 0.783，圈色与注记随所选方案更新。</li>
+        <li><b>线路治理光带</b> — 按所选方案 <span class="m">per_line.saturation_section</span> 着色的半透明加宽光带，压在原线网之上，一眼看出哪条线在超饱和。</li>
+        <li><b>方案摘要卡</b>（页面顶部居中）— 随方案切换更新关键指标与基准对比，与决策面板双向联动。</li>
+      </ul>
+      <table class="levels">
+        <thead><tr><th colspan="2">饱和度档位（圈层 / 光带共用）</th></tr></thead>
+        <tbody>
+          <tr><td><span class="sw" style="background:#ff3344"></span>≥ 1.05 · 超饱和</td><td><span class="sw" style="background:#ff8800"></span>0.90 – 1.05 · 逼近容量</td></tr>
+          <tr><td><span class="sw" style="background:#ffcc00"></span>0.70 – 0.90 · 偏紧</td><td><span class="sw" style="background:#00ff88"></span>&lt; 0.70 · 充裕</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="s3">
+      <h2><span class="no">03</span>三步演示</h2>
+      <div class="h2rule"></div>
+      <ol class="steps">
+        <li>在项目根目录启动静态服务器：<code>python -m http.server 8000 --bind 127.0.0.1</code>。</li>
+        <li>浏览器打开 <code>http://localhost:8000/bmap.html?scenario=holiday</code>（如需临时换 Key：加 <code>?ak=你的AK</code>）。</li>
+        <li>观察地图：节假日场景自动开启「决策地图」；依次点击摘要卡或决策面板中的 <b>基准 → A → B → C → D</b>，看环庐山、赣东北两条最紧线路由红转黄、再转绿。</li>
+      </ol>
+      <p class="hint">
+        <b>提示：</b>若页面此前已打开旧版本，请强刷一次（<span class="m">Ctrl + F5</span>）以加载新的脚本。
+        工具栏「决策地图·枢纽治理」按钮可随时开关图层；「换乘仿真·南昌站」模块提供站内换乘的流向推演，可与枢纽环对照查看。
+      </p>
+    </section>
+
+    <section id="s4">
+      <h2><span class="no">04</span>截图证据</h2>
+      <div class="h2rule"></div>
+      <p class="small">以下为 2026-09-26 于 <span class="m">localhost:8000</span> 的实拍截图（窗口 1920 × 1080，百度底图 + 覆盖物）：先看 1 张总览对比，再按治理前 / 后与三个特写依次查看；均可在 <span class="m">assets/</span> 目录中查看原图。</p>
+
+      <figure>
+        <img src="assets/00_治理前后对比_基准vs方案D.png" alt="治理前后对比总览：左侧基准红色超饱和光带，右侧推荐方案 D 红色消失">
+        <figcaption><span class="fno">总览</span><span>治理前后对比：左（基准）环庐山、赣东北两条线为红色超饱和；右（推荐方案 D）红色全部消失、转黄/绿。两侧为同日同机位实拍。</span></figcaption>
+      </figure>
+
+      <figure>
+        <img src="assets/01_治理前全景_基准视图.png" alt="基准（未治理）全景：环庐山线与赣东北环线呈红色超饱和光带，庐山站等 5 个瓶颈站带脉冲圈">
+        <figcaption><span class="fno">FIG.01</span><span>治理前（基准）：环庐山旅游线（1.206）、赣东北旅游环线（1.102）为红色超饱和光带；庐山、婺源、上饶、庐山西海、大觉山 5 个站台瓶颈圈可见，庐山站饱和度 1.196 最高。</span></figcaption>
+      </figure>
+
+      <figure>
+        <img src="assets/02_治理后全景_推荐方案D.png" alt="推荐方案 D（治理后）全景：光带转为黄绿，红色消失，摘要卡显示指标改善">
+        <figcaption><span class="fno">FIG.02</span><span>治理后（推荐方案 D · 强化档）：红色光带全部消失，两条最紧线路降为黄档；顶部摘要卡同步显示站台最大饱和度 0.797（基准 1.196）、平均延误 4.00 min（基准 13.78 min）。</span></figcaption>
+      </figure>
+
+      <figure>
+        <img src="assets/03_方案B对照_限流不改断面.png" alt="方案 B（三级限流）全景：红色光带仍在，说明限流不改变断面饱和度">
+        <figcaption><span class="fno">FIG.03</span><span>对照方案 B（三级限流 + 维持既有间隔）：站台圈得到抑制，但两条红色断面光带仍在——直观呈现「限流压站台、加密治断面」的取舍。</span></figcaption>
+      </figure>
+
+      <div class="shotpair">
+        <figure>
+          <img src="assets/04_枢纽换乘_南昌站特写.png" alt="南昌站枢纽特写：青色枢纽环与换乘治理注记">
+          <figcaption><span class="fno">FIG.04</span><span>枢纽特写 · 南昌站：青色枢纽换乘环 + 治理注记（换乘占比约 55% · 枢纽饱和度 0.498）。</span></figcaption>
+        </figure>
+        <figure>
+          <img src="assets/05_环庐山瓶颈_庐山站特写.png" alt="环庐山走廊特写：庐山站瓶颈圈与方案 D 治理后线路断面注记">
+          <figcaption><span class="fno">FIG.05</span><span>环庐山走廊：庐山站（基准 1.196）圈旁附「方案 D 治理后线路断面（线路级）0.804」。</span></figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <img src="assets/06_赣东北瓶颈群_婺源上饶.png" alt="赣东北瓶颈群特写：婺源、上饶、三清山一线光带与圈层">
+        <figcaption><span class="fno">FIG.06</span><span>赣东北瓶颈群：婺源 / 上饶 / 三清山一线，光带颜色即所选方案的断面饱和度，沿线上饶站圈与齿轨段标记同屏对照。</span></figcaption>
+      </figure>
+    </section>
+
+    <section id="s5">
+      <h2><span class="no">05</span>数据口径与边界</h2>
+      <div class="h2rule"></div>
+      <ul class="tight">
+        <li>页面所有业务数值来自 <span class="m">data/agent_decision_holiday.json</span>（schema 1.0，2026-09-22 生成），前端不持有任何硬编码业务常量。</li>
+        <li>站点圈为<b>基准（未治理）</b>瓶颈；切换方案时圈旁给出「方案 X 治理后线路断面（线路级）」为近似值——按该站所属线路中最紧断面折算，不是站台级重仿真，已在标签与图例中如实标注。</li>
+        <li>枢纽换乘占比约 55% 与项目内「换乘节点动态仿真（南昌站）」模块保持一致，属仿真推演值；枢纽饱和度 0.498 来自决策文档指标。</li>
+        <li>站台饱和度、延误、未承运等均为自研「线网-场站-枢纽」三层饱和度假真的推演结果（与项目其他模块同一口径），非实测统计数据。</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <h2><span class="no">06</span>文件、验证与回滚</h2>
+      <div class="h2rule"></div>
+      <ul class="tight">
+        <li><b>新增</b> <span class="m">js/decision-map.js</span> · <b>备份</b> <span class="m">_backup_decisionmap_before_20260926/</span>（含改动前的 bmap.html / README.md / js/agent-decision.js 原版）。</li>
+        <li><b>验证 ①</b> 页面加载无 JS 异常（早期错误捕获为空）；决策地图自动开启，瓶颈圈 5 个、线路光带 12 条。</li>
+        <li><b>验证 ②</b> 联动回归：基准视图 3 条红色光带 → 推荐方案 D 0 条；B 限流视图仍为 3 条（断面未变，与仿真结论一致）。</li>
+        <li><b>验证 ③</b> 像素级抽查：同机位截图红色像素占比 基准 → D 由高转低、黄色占比反向上升，与档位换色逻辑一致。</li>
+        <li><b>回滚</b> 还原备份目录中的 3 个文件并删除 <span class="m">js/decision-map.js</span>，即回到本次改动前状态。</li>
+      </ul>
+    </section>
+
+    <section id="s7">
+      <h2><span class="no">07</span>制式分段图层与坐标校准（2026-09-26 增补）</h2>
+      <div class="h2rule"></div>
+      <p>
+        依《全线轨道制式分段适配详细说明》新增「制式分段」一键图层：开启后全网按制式重新着色——
+        标准轮轨（蓝）、跨座式单轨（紫）、齿轨段（玫红闪烁，仅三清山 / 大觉山 / 庐山秀峰—三叠泉三处），
+        并叠加换乘 / 制式转换节点（白圈）、景区集散中心（绿三角）与文字稿新增站点
+        （白方块，放大后显示站名）。该视图与常规配色（黄 / 红 / 橙）完全区分；
+        开启时原线与旧齿轨标记自动压暗，不产生重叠堆色。
+      </p>
+      <ul class="tight">
+        <li><b>坐标校准</b>——三清山（→ 118.06, 28.91）、庐山西海（→ 115.55, 29.24）、龙虎山（→ 116.96, 28.10）、龟峰（→ 117.41, 28.32）四站按实地位置修正；轨迹、路书与全部数据文件同步。</li>
+        <li><b>新增几何</b>——庐山南麓观光环（庐山站—索道下站—秀峰—三叠泉—北门）及昌九 / 昌抚 / 大觉山走廊的新增站点。</li>
+        <li><b>演示</b>——<span class="m">bmap.html</span> 工具栏点「制式分段」；放大到 10 级后显示新增站点与转换点批注。</li>
+      </ul>
+
+      <figure>
+        <img src="assets/07_制式分段_全省视图.png" alt="制式分段全省视图：通勤层全线蓝色，旅游层以紫色单轨为主，玫红为三处齿轨段">
+        <figcaption><span class="fno">FIG.07</span><span>全省视图：蓝色 = 标准轮轨（通勤层全线 + 旅游层平缓段），紫色 = 跨座式单轨（旅游层山地段），玫红闪烁 = 齿轨段（仅三处）。</span></figcaption>
+      </figure>
+
+      <div class="shotpair">
+        <figure>
+          <img src="assets/08_制式分段_环庐山南麓.png" alt="环庐山南麓观光环：新增站点与秀峰—三叠泉齿轨段">
+          <figcaption><span class="fno">FIG.08</span><span>环庐山南麓观光环：索道下站—秀峰为单轨、秀峰—三叠泉为齿轨；新增加站点与转换节点批注可见。</span></figcaption>
+        </figure>
+        <figure>
+          <img src="assets/09_制式分段_三清山齿轨.png" alt="三清山段：齿轨段与校准后的三清山站位置">
+          <figcaption><span class="fno">FIG.09</span><span>三清山段：齿轨（玫红）与校准后的三清山站位置（118.06, 28.91）。</span></figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <img src="assets/10_制式分段_大觉山齿轨.png" alt="大觉山段：资溪—大觉山齿轨与悬崖动车特色站点">
+        <figcaption><span class="fno">FIG.10</span><span>大觉山段：资溪—大觉山齿轨（玫红）与云门 / 仙踪 / 揽月 / 蝶恋花等特色站点（放大后显示站名）。</span></figcaption>
+      </figure>
+    </section>
+
+    <footer class="colophon">
+      赣鄱智轨 · 决策地图模块交付与演示说明 · 2026-09-26<br>
+      单一数据真源：<span class="m">data/agent_decision*.json</span> · 配套截图 11 张（含总览对比与制式分段 4 张，<span class="m">assets/</span>）· 演示页：<span class="m">bmap.html?scenario=holiday</span>
+    </footer>
+
+  </main>
+</div>
+</body>
+</html>
