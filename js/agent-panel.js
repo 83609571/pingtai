@@ -92,6 +92,7 @@
         '<span class="ap-title">应急演示 · 智能体决策面板</span>' +
         '<span class="ap-agents-tag">四智能体协同</span>' +
         '<span class="ap-fold" id="ap-fold" title="收起/展开">—</span>' +
+        '<span class="ap-close" id="ap-close" title="关闭面板（可点顶部导航「智能体面板」重新打开）">✕</span>' +
       '</div>' +
       '<div class="ap-body" id="ap-body">' +
         '<div class="ap-scenarios" id="ap-scenarios"></div>' +
@@ -119,6 +120,13 @@
     };
     document.getElementById('ap-head').onclick = function () {
       if (state.collapsed) setCollapsed(false);
+    };
+    // ★ 完全关闭（2026-10-08）：面板占半屏，点 ✕ 整体隐藏；
+    //   顶部导航「智能体面板 / 应急演示」按钮可重新打开。
+    document.getElementById('ap-close').onclick = function (e) {
+      e.stopPropagation();
+      var box = document.getElementById('agent-panel');
+      if (box) box.style.display = 'none';
     };
   }
 
@@ -228,6 +236,11 @@
     close: function () {
       var box = document.getElementById('agent-panel');
       if (box) box.style.display = 'none';
+    },
+    // 面板当前是否可见（供 app.js 导航开关高亮回填）
+    isOpen: function () {
+      var p = document.getElementById('agent-panel');
+      return !!(p && p.style.display !== 'none');
     },
     // 把当前场景同步到地图（客流热力 + 应急覆盖物）
     applyScene: broadcast

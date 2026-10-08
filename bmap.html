@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>赣鄱智轨</title>
-  <link rel="stylesheet" href="css/style.css?v=20260926">
+  <link rel="stylesheet" href="css/style.css?v=20261008">
   <!-- 0) 本地 AK（可选 · 已被 .gitignore 忽略，不进入参赛包）
        缺失时 map-base.js 会渲染明确的提示页并引导到零 AK 版，不会白屏。 -->
   <script src="js/local-ak.js?v=20260926"
@@ -17,14 +17,20 @@
   <script src="js/agent-decision.js?v=20260926"></script>
   <!-- ★ 决策地图：把「节假日大客流·枢纽换乘拥堵治理」的决策结果叠加到地图
        （瓶颈圈 / 线路治理色 / 枢纽换乘环 / 方案摘要卡；由方案 Tab 切换联动） -->
-  <script src="js/decision-map.js?v=20260926"></script>
+  <script src="js/decision-map.js?v=20261008"></script>
   <!-- ★ 制式分段：一键切换“轨道制式”视图（轮轨/单轨/齿轨 + 转换节点 + 景区集散） -->
   <script src="js/system-lines.js?v=20260926"></script>
-  <script src="js/agent-panel.js?v=20260926"></script>
+  <script src="js/agent-panel.js?v=20261008"></script>
   <script src="js/emergency.js?v=20260926"></script>
   <script src="js/train-sim.js?v=20260926"></script>
   <script src="js/transfer-sim.js?v=20260926"></script>
-  <script src="js/app.js?v=20260926"></script>
+  <!-- ★ 路段流量：区段断面客流拥挤度着色 + 站点/新增站点客流标注
+       （数据：data/flow_{holiday|weekday}.json；新增站点客流为可复核推演） -->
+  <script src="js/flow-layer.js?v=20261008"></script>
+  <!-- ★ 仿真评价指标（依方案 2.7）：把 10 项评价指标落到地图上，
+       基准方案 vs 优化方案逐项对比；数据取自 data/agent_decision_*.json -->
+  <script src="js/metrics-panel.js?v=20261008"></script>
+  <script src="js/app.js?v=20261008"></script>
   <!-- 3) 注入百度地图 JSAPI GL（AK 取自 config.js 的 window.GanpoConfig.BMAP_AK）
        ★ 必须用 document.write 在"HTML 解析阶段"同步注入 ★
        为什么不能改成动态 createElement('script')：
@@ -65,6 +71,7 @@
       <div class="item"><span class="swatch" style="background:#ff8800"></span>齿轨爬坡段（橙色闪烁）</div>
       <div class="item"><span class="swatch" style="background:#4fa8d8"></span>设区市行政区划（市级划分）</div>
       <div class="item"><span class="swatch" style="background:#888888"></span>百度实时路况（按需开启：红=拥堵 / 黄=缓行 / 绿=畅通）</div>
+      <div class="item"><span class="swatch" style="background:linear-gradient(90deg,#ff3344,#ffcc00,#00ff88)"></span>路段流量·拥挤度（按需开启：红=拥挤 / 黄=适中 / 绿=畅通 + 站点客流数字）</div>
       <div class="item"><span class="swatch" style="background:#4d7fff"></span>制式分段：蓝=标准轮轨 / 紫=跨座式单轨 / 玫=齿轨段</div>
       <div class="item"><span class="swatch" style="background:#00b050"></span>制式分段符号：▲景区集散 · ○转换节点 · □新增站点</div>
     </div>

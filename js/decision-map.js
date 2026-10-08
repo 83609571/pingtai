@@ -57,7 +57,8 @@
     hubObjects: [],
     timer: null,
     phase: true,
-    built: false
+    built: false,
+    zoom: 8        // 当前地图级别（饱和度框随缩放联动，见 zoomFontScale/zoomRadiusScale）
   };
 
   // —— 工具 ——
@@ -81,6 +82,16 @@
     if (v >= 0.9)  return '#ff8800';
     if (v >= 0.7)  return '#ffcc00';
     return '#00ff88';
+  }
+
+  // —— 饱和度框随地图缩放联动（2026-10-08）——
+  // 放大地图时：标注框字号同步放大（更易读），圈的米制半径按像素口径回缩
+  // （否则放大后几十公里的圈会吞掉整个屏幕）。zoomend 时整层幂等重绘。
+  function zoomFontScale() {
+    return Math.max(0.9, Math.min(1.5, Math.pow(1.1, (state.zoom || 8) - 8)));
+  }
+  function zoomRadiusScale() {
+    return Math.pow(1.8, 8 - (state.zoom || 8));
   }
 
   // 线路名对照（运行时构建）
@@ -149,13 +160,14 @@
 
   function mkLabel(html, coord, borderColor, mLeft, mTop) {
     try {
+      var fs = zoomFontScale();   // 字号与偏移随地图级别同步缩放
       var lb = new BMapGL.Label(html, { position: new BMapGL.Point(coord[0], coord[1]) });
       lb.setStyle({
         color: '#eaf6ff', background: 'rgba(0,14,30,0.93)',
         border: '1px solid ' + (borderColor || '#1a4a7c'), padding: '3px 8px',
-        fontSize: '11px', fontFamily: 'Microsoft YaHei, sans-serif', borderRadius: '4px',
-        marginLeft: (mLeft == null ? -96 : mLeft) + 'px',
-        marginTop: (mTop == null ? -46 : mTop) + 'px',
+        fontSize: (11 * fs).toFixed(1) + 'px', fontFamily: 'Microsoft YaHei, sans-serif', borderRadius: '4px',
+        marginLeft: Math.round((mLeft == null ? -96 : mLeft) * fs) + 'px',
+        marginTop: Math.round((mTop == null ? -46 : mTop) * fs) + 'px',
         whiteSpace: 'nowrap', lineHeight: '1.55'
       });
       return lb;
@@ -219,7 +231,7 @@
     var hubSt = stationMap[hubName];
     if (hubSt && hubSt.coord) {
       var hubCol = '#00d4ff';
-      var hubCircle = new BMapGL.Circle(new BMapGL.Point(hubSt.coord[0], hubSt.coord[1]), 30000, {
+      var hubCircle = new BMapGL.Circle(new BMapGL.Point(hubSt.coord[0], hubSt.coord[1]), Math.round(30000 * zoomRadiusScale()), {
         strokeColor: hubCol, strokeWeight: 3, strokeOpacity: 0.9,
         fillColor: hubCol, fillOpacity: 0.06
       });
@@ -243,7 +255,7 @@
       var st = stationMap[b.name];
       if (!st || !st.coord) return;
       var col = satColor(b.saturation);
-      var radius = Math.round(12000 + Math.min(1.5, b.saturation || 0) * 14000);
+      var radius = Math.round((12000 + Math.min(1.5, b.saturation || 0) * 14000) * zoomRadiusScale());
       var circle = new BMapGL.Circle(new BMapGL.Point(st.coord[0], st.coord[1]), radius, {
         strokeColor: col, strokeWeight: 2.5, strokeOpacity: 0.95,
         fillColor: col, fillOpacity: 0.22
@@ -456,6 +468,14 @@
   // —— 事件挂接 ——
   window.addEventListener('ganpo:mapready', function () {
     state.map = (window.GanpoMap && window.GanpoMap.map) || null;
+    try { state.zoom = state.map.getZoom(); } catch (e) {}
+    // 缩放联动：级别变化后按新级别重算标注框字号与圈半径（幂等重绘）
+    try {
+      state.map.addEventListener('zoomend', function () {
+        try { state.zoom = state.map.getZoom(); } catch (e) {}
+        if (state.enabled) apply();
+      });
+    } catch (e) {}
     buildNameMaps();
     buildButton();
     if (state.enabled) apply();
