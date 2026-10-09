@@ -1,0 +1,71 @@
+name: 智能体后端 · 重跑决策文档
+
+# 放置位置：仓库根目录 .github/workflows/agent-backend.yml
+# 触发方式：GitHub 仓库页 → Actions 标签 → 选「智能体后端 · 重跑决策文档」→ Run workflow
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: '场景：both / holiday / weekday'
+        required: false
+        default: 'both'
+      provider:
+        description: 'local=离线确定性（默认，无需密钥）；glm / deepseek 需先在仓库 Secrets 配 Key'
+        required: false
+        default: 'local'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agent-backend
+  cancel-in-progress: true
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    env:
+      # 只在仓库 Settings → Secrets and variables → Actions 配置了对应密钥时才会生效；
+      # local 模式下这些值为空，智能体自动回落离线确定性规划器（产出逐字节等价）。
+      GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
+      GLM_MODEL: ${{ secrets.GLM_MODEL }}
+      DS41_API_KEY: ${{ secrets.DS41_API_KEY }}
+      DS41_MODEL: ${{ secrets.DS41_MODEL }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 数据契约自检
+        working-directory: pingtai
+        run: python -c "from agent import data_layer as dl; print('holiday 站点', dl.network_summary('holiday')['station_count']); print('weekday 站点', dl.network_summary('weekday')['station_count'])"
+
+      - name: 跑智能体（节假日场景）
+        if: inputs.scenario == 'both' || inputs.scenario == 'holiday'
+        working-directory: pingtai
+        run: |
+          python run_agent.py --scenario holiday --provider "${{ inputs.provider }}" \
+            --decision-out data/agent_decision_holiday.json
+          cp data/agent_decision_holiday.json data/agent_decision.json
+
+      - name: 跑智能体（工作日场景）
+        if: inputs.scenario == 'both' || inputs.scenario == 'weekday'
+        working-directory: pingtai
+        run: python run_agent.py --scenario weekday --provider "${{ inputs.provider }}" --decision-out data/agent_decision_weekday.json
+
+      - name: 提交产物回仓库（决策文档 + 治理报告 + trace 证据链）
+        working-directory: pingtai
+        run: |
+          git config user.name  "agent-backend-bot"
+          git config user.email "actions@github.com"
+          git add -f data/agent_decision.json data/agent_decision_holiday.json data/agent_decision_weekday.json "output/治理方案报告.md" output/trace/*.json output/sim_results/*.json
+          if git diff --cached --quiet; then
+            echo "本次运行产物与仓库一致，无需提交"
+          else
+            git commit -m "chore(agent): 后端重跑决策文档 $(date -u +%Y%m%dT%H%M%SZ) scenario=${{ inputs.scenario }} provider=${{ inputs.provider }}"
+            git push
+          fi
