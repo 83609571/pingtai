@@ -62,11 +62,10 @@ def build_markdown(*, baseline: dict, plans: list[dict], recommended: str,
         L.append("基准场景瓶颈清单（按饱和度降序）：")
         L.append("")
         L.append(_table([["站点", "类型", "饱和度", "瓶颈环节", "积压(人)"]] + [
-            [b.get("name", "-"),
-             "通勤" if b.get("type") == "commuter" else "旅游",
-             f"**{(b.get('saturation') or 0):.3f}**",
-             "站台容量" if b.get("binding") == "platform" else "换乘通道",
-             f"{(b.get('queue_persons') or 0):,}"] for b in b_bottleneck]))
+            [b["name"], "通勤" if b["type"] == "commuter" else "旅游",
+             f"**{b['saturation']:.3f}**",
+             "站台容量" if b["binding"] == "platform" else "换乘通道",
+             f"{b['queue_persons']:,}"] for b in b_bottleneck]))
     L.append("")
 
     L.append("## 二、基准 vs 候选方案指标对比")

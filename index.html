@@ -17,7 +17,7 @@
 <!-- ★ L3 智能体决策面板（数据驱动，消费 data/agent_decision.json）★
      为什么单独成一个文件：index.html（零AK版）与 bmap.html（百度版）
      共用同一套决策渲染逻辑，避免两处硬编码各自漂移。 -->
-<script src="js/agent-decision.js?v=20260926"
+<script src="js/agent-decision.js"
         onerror="this.onerror=null;console.warn('[赣鄱智轨] js/agent-decision.js 未加载，智能体面板将回落为规则原型');"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -369,17 +369,17 @@ var tourismLines = [
       {name:'上饶站',coord:[117.97,28.45],dailyFlow:'1.2万人次',transfer:'高铁、公交',scenic:'灵山'},
       {name:'婺源站',coord:[117.86,29.25],dailyFlow:'0.9万人次',transfer:'公交、旅游专线',scenic:'篁岭、江湾'}]},
   { name:'赣东北环线·三清山龙虎山段',
-    coords:[[118.06,28.91],[116.96,28.10],[117.97,28.45]],
+    coords:[[117.22,28.83],[116.92,28.25],[117.97,28.45]],
     stations:[
-      {name:'三清山站',coord:[118.06,28.91],dailyFlow:'0.7万人次',transfer:'景区接驳车',scenic:'三清山'},
-      {name:'龙虎山站',coord:[116.96,28.10],dailyFlow:'0.5万人次',transfer:'公交',scenic:'龙虎山、上清古镇'},
+      {name:'三清山站',coord:[117.22,28.83],dailyFlow:'0.7万人次',transfer:'景区接驳车',scenic:'三清山'},
+      {name:'龙虎山站',coord:[116.92,28.25],dailyFlow:'0.5万人次',transfer:'公交',scenic:'龙虎山、上清古镇'},
       {name:'上饶站',coord:[117.97,28.45],dailyFlow:'1.2万人次',transfer:'高铁、公交',scenic:'灵山'}]},
   { name:'环庐山旅游线',
-    coords:[[116.00,29.71],[115.85,29.55],[115.55,29.24],[116.00,29.71]],
+    coords:[[116.00,29.71],[115.85,29.55],[115.98,29.45],[116.10,29.60],[116.00,29.71]],
     stations:[
       {name:'九江站',coord:[116.00,29.71],dailyFlow:'1.9万人次',transfer:'公交、旅游专线',scenic:'庐山'},
       {name:'庐山站',coord:[115.85,29.55],dailyFlow:'1.5万人次',transfer:'索道、景区接驳',scenic:'庐山风景区'},
-      {name:'庐山西海站',coord:[115.55,29.24],dailyFlow:'0.8万人次',transfer:'游船码头',scenic:'庐山西海'}]},
+      {name:'庐山西海站',coord:[115.98,29.45],dailyFlow:'0.8万人次',transfer:'游船码头',scenic:'庐山西海'}]},
   // —— 以下为「全省市区打通」扩展段（依原方案 3.3 环线段：上饶/九江/鹰潭段外补赣西·赣南·赣东）——
   { name:'赣西红色旅游线',
     coords:[[114.99,27.11],[114.18,26.75],[114.28,27.72],[113.87,27.63],[114.99,27.11]],
@@ -395,11 +395,11 @@ var tourismLines = [
       {name:'瑞金站',coord:[116.03,25.88],dailyFlow:'0.4万人次',transfer:'景区接驳车',scenic:'共和国摇篮'},
       {name:'龙南站',coord:[114.79,24.91],dailyFlow:'0.3万人次',transfer:'公交',scenic:'关西围屋'}]},
   { name:'赣东古韵旅游线',
-    coords:[[117.18,29.27],[117.58,29.42],[117.41,28.32],[116.97,27.97],[117.18,29.27]],
+    coords:[[117.18,29.27],[117.58,29.42],[117.44,28.35],[116.97,27.97],[117.18,29.27]],
     stations:[
       {name:'景德镇站',coord:[117.18,29.27],dailyFlow:'0.6万人次',transfer:'公交、旅游专线',scenic:'古窑、瑶里'},
       {name:'瑶里站',coord:[117.58,29.42],dailyFlow:'0.2万人次',transfer:'景区接驳车',scenic:'瑶里古镇'},
-      {name:'龟峰站',coord:[117.41,28.32],dailyFlow:'0.4万人次',transfer:'景区接驳车',scenic:'龟峰'},
+      {name:'龟峰站',coord:[117.44,28.35],dailyFlow:'0.4万人次',transfer:'景区接驳车',scenic:'龟峰'},
       {name:'上清古镇站',coord:[116.97,27.97],dailyFlow:'0.3万人次',transfer:'景区接驳车',scenic:'上清古镇'}]},
   // —— 依《以轨代巴》方案 3.3：大觉山旅游支线（抚州—资溪—大觉山）——
   { name:'大觉山旅游支线',
@@ -421,7 +421,7 @@ var tourismLines = [
 // 采用齿轨技术的陡坡路段，地图上以橙色闪烁标记；点击弹技术参数
 var SLOPE_SEGMENTS = [
   { name:'三清山齿轨段',
-    coords:[[117.86,29.25],[118.06,28.91]],
+    coords:[[117.86,29.25],[117.22,28.83]],
     grade:'最大坡度 120‰',
     system:'米轨+齿轨双制式',
     ref:'四川都四山地轨道交通',
@@ -450,10 +450,10 @@ var FLOW_STATIONS = [
   {name:'抚州站',lng:116.36,lat:27.95,type:'commuter',base:8000},
   {name:'上饶站',lng:117.97,lat:28.45,type:'tourism',base:12000},
   {name:'婺源站',lng:117.86,lat:29.25,type:'tourism',base:9000},
-  {name:'三清山站',lng:118.06,lat:28.91,type:'tourism',base:7000},
-  {name:'龙虎山站',lng:116.96,lat:28.10,type:'tourism',base:5000},
+  {name:'三清山站',lng:117.22,lat:28.83,type:'tourism',base:7000},
+  {name:'龙虎山站',lng:116.92,lat:28.25,type:'tourism',base:5000},
   {name:'庐山站',lng:115.85,lat:29.55,type:'tourism',base:15000},
-  {name:'庐山西海站',lng:115.55,lat:29.24,type:'tourism',base:8000},
+  {name:'庐山西海站',lng:115.98,lat:29.45,type:'tourism',base:8000},
   // —— 全省市区打通新增（覆盖景德镇/萍乡/新余/鹰潭/赣州/吉安/宜春 7 市）——
   {name:'丰城站',lng:115.77,lat:28.16,type:'commuter',base:4000},
   {name:'樟树站',lng:115.55,lat:28.06,type:'commuter',base:3000},
@@ -471,7 +471,7 @@ var FLOW_STATIONS = [
   {name:'瑞金站',lng:116.03,lat:25.88,type:'tourism',base:4000},
   {name:'龙南站',lng:114.79,lat:24.91,type:'tourism',base:3000},
   {name:'瑶里站',lng:117.58,lat:29.42,type:'tourism',base:2000},
-  {name:'龟峰站',lng:117.41,lat:28.32,type:'tourism',base:3500},
+  {name:'龟峰站',lng:117.44,lat:28.35,type:'tourism',base:3500},
   {name:'上清古镇站',lng:116.97,lat:27.97,type:'tourism',base:3000},
   // —— 依《以轨代巴》方案 3.3 / 3.4 新增 ——
   {name:'资溪站',lng:117.07,lat:27.70,type:'tourism',base:2000},
@@ -499,7 +499,7 @@ var FLOW_SEGMENTS = [
 
 // 调度智能体规则镜像（镜像 dispatch_agent.py）
 var REROUTE = { affected_section:'三清山站→龙虎山站',
-  detour:[[118.06,28.91],[117.97,28.45],[116.96,28.10]] };
+  detour:[[117.22,28.83],[117.97,28.45],[116.92,28.25]] };
 var SCENARIOS = [
   {key:'①工作日早高峰', tl:'workday_peak',    sf:'mid',  al:'none',      icon:'🚆'},
   {key:'②周末节假日',   tl:'weekend_holiday', sf:'high', al:'none',      icon:'🏔'},
@@ -523,8 +523,8 @@ function mirrorDispatch(tl, sf, al) {
 
 // 换乘仿真模型（镜像 transfer-sim.js）
 var TRANSFER_MODES = {
-  weekday:{arrive:28000,share:.10,tourism:3000,bottleneck:false,note:'工作日通勤为主，换乘占比~10%，通道畅通。'},
-  holiday:{arrive:21000,share:.55,tourism:31200,bottleneck:true,note:'节假日大量通勤客转旅游，换乘占比~55%，通道拥堵风险高，建议加开疏运列车。'}
+  weekday:{arrive:28000,share:.10,tourism:2800,bottleneck:false,note:'换乘量 = 到达 28,000 × 换乘占比 10% ≈ 2,800 人次/日，通道畅通。'},
+  holiday:{arrive:21000,share:.55,tourism:11550,bottleneck:true,note:'换乘量 = 到达 21,000 × 换乘占比 55% ≈ 11,550 人次/日，约为工作日 4 倍，通道拥堵风险高，建议加开疏运列车。'}
 };
 
 // ---------- 工具 ----------
@@ -824,6 +824,13 @@ function stopBus(){
   if(chart) chart.setOption({series:[{id:'busDot',data:[]}]});
 }
 
+// ★ 大巴白点联动（工单 W-09）：通勤/旅游两层全关或「显示大巴车辆」关闭时，
+//   白点一并消失；任一层重新开启且大巴开关仍为开时，恢复移动动画。
+function syncBus(){
+  if(!chart) return;
+  if(busShown && (showCommuter || showTourism)) startBus(); else stopBus();
+}
+
 // ---------- 模块四：智能体面板 ----------
 function renderAgent(i){
   curScen=i;
@@ -890,7 +897,7 @@ function renderTransfer(mode){
 //     risk_segments / reroute —— 它们是**由真实拓扑与瓶颈站推出来的**，
 //     而不是写死的常量；被监控的线段会随场景变化。
 //   · 未加载时回落到方案文本口径（三清山→龙虎山 受影响段 + 经上饶绕行）。
-var EMER_SEG_DEFAULT = [[118.06,28.91],[116.96,28.10]];      // 三清山→龙虎山
+var EMER_SEG_DEFAULT = [[117.22,28.83],[116.92,28.25]];      // 三清山→龙虎山
 function emerRiskSegs(){
   var d = window.__GANPO_DECISION__;
   if (d && d.risk_segments && d.risk_segments.length) return d.risk_segments;
@@ -1013,13 +1020,14 @@ function initOptimizePanel(){
       busShown = !busShown;
       this.textContent = busShown ? '隐藏大巴车辆' : '显示大巴车辆';
       this.classList.toggle('active', busShown);
-      if(busShown){ startBus(); } else { stopBus(); }
+      syncBus();
     };
   }
   // 供右上角导航按钮调用
   window.toggleOptimizePanel = function(){
     if(panel.style.display === 'block') closePanel(); else openPanel();
   };
+  window.closeOptimizePanel = closePanel;
 }
 
 // ---------- 工具栏/导航绑定 ----------
@@ -1029,18 +1037,23 @@ document.getElementById('btn-heat-toggle').onclick=function(){
   heatOn=!heatOn;this.textContent=heatOn?'隐藏热力':'显示热力';this.classList.toggle('active',!heatOn);renderHeat();};
 document.getElementById('btn-transfer').onclick=function(){
   var p=document.getElementById('transfer-panel');
-  p.style.display=p.style.display==='block'?'none':'block';};
+  var opening = p.style.display!=='block';
+  p.style.display= opening ? 'block' : 'none';
+  if(opening && window.closeOptimizePanel){ window.closeOptimizePanel(); }
+};
 document.getElementById('btn-emergency').onclick=function(){activateEmergency(!emergencyOn);};
 // 通勤层 / 旅游层：两个独立小开关
 document.getElementById('btn-layer-commuter').onclick=function(){
   showCommuter=!showCommuter;
   this.classList.toggle('active', showCommuter);
   renderLines();
+  syncBus();
 };
 document.getElementById('btn-layer-tourism').onclick=function(){
   showTourism=!showTourism;
   this.classList.toggle('active', showTourism);
   renderLines();
+  syncBus();
 };
 
 document.querySelectorAll('#module-nav button').forEach(function(b){
@@ -1048,6 +1061,10 @@ document.querySelectorAll('#module-nav button').forEach(function(b){
     var mod=b.getAttribute('data-mod');
     document.querySelectorAll('#module-nav button').forEach(function(x){x.classList.remove('active');});
     b.classList.add('active');
+    // ★ 面板互斥（差距分析 1.3）：切换模块时收起其他模块的悬浮面板，
+    //   避免「换乘 + 优化」等同屏共叠
+    if(mod!=='transfer'){ document.getElementById('transfer-panel').style.display='none'; }
+    if(mod!=='optimize' && window.closeOptimizePanel){ window.closeOptimizePanel(); }
     if(mod==='network'&&chart){chart.setOption({geo3D:{}});}
     if(mod==='heat'){heatOn=true;document.getElementById('btn-heat-toggle').textContent='隐藏热力';renderHeat();}
     if(mod==='transfer'){document.getElementById('transfer-panel').style.display='block';}
@@ -1091,13 +1108,15 @@ var COMPARE_ROUTES = [
     // 公路：沪昆高速到玉山后盘山折返
     road:[[115.89,28.68],[116.06,28.52],[116.30,28.43],[116.58,28.34],[116.88,28.31],
           [117.20,28.29],[117.55,28.26],[117.88,28.31],[118.12,28.44],[118.26,28.60],
-          [118.18,28.72],[118.03,28.81],[118.05,28.86],[118.06,28.91]],
-    rail:[[115.89,28.68],[116.90,28.40],[117.97,28.45],[118.06,28.91]] },
+          [118.18,28.72],[118.03,28.81],[117.88,28.90],[117.70,28.96],[117.50,28.93],
+          [117.34,28.88],[117.22,28.83]],
+    rail:[[115.89,28.68],[116.90,28.40],[117.97,28.45],[117.22,28.83]] },
   { from:'上饶', to:'三清山', mode:'旅游', roadMin:70, railMin:25,
     roadNote:'景区专线大巴经盘山公路', railNote:'上饶轨道交通旅游专线单轨',
-    road:[[117.97,28.45],[118.10,28.54],[118.24,28.66],[118.16,28.76],[118.02,28.84],[118.05,28.88],[118.06,28.91]],
+    road:[[117.97,28.45],[118.10,28.54],[118.24,28.66],[118.16,28.76],[118.02,28.84],
+          [117.88,28.92],[117.70,28.97],[117.52,28.94],[117.36,28.88],[117.22,28.83]],
     // 轨道：两点直连，最短距离
-    rail:[[117.97,28.45],[118.06,28.91]] },
+    rail:[[117.97,28.45],[117.22,28.83]] },
   { from:'九江', to:'庐山', mode:'旅游', roadMin:60, railMin:20,
     roadNote:'公交或中巴沿盘山公路', railNote:'环庐山单轨旅游专线直接上山',
     road:[[116.00,29.71],[116.07,29.68],[116.11,29.63],[116.05,29.60],[115.98,29.64],

@@ -83,10 +83,13 @@ def main(argv=None) -> int:
     if engine_meta["mode"] == "llm":
         print(f"    模式: LLM · provider={engine_meta['provider']} · model={engine_meta['model']}")
     else:
-        print(f"    模式: 离线确定性规划器（未检测到 API Key）")
+        forced = (a.provider or "").strip().lower() == "local"
+        reason = "已通过 --provider local 强制离线" if forced else "未检测到 API Key"
+        print(f"    模式: 离线确定性规划器（{reason}）")
         print(f"    说明: {engine_meta['note']}")
-        print(f"    提示: 设置 DS41_API_KEY / GLM_API_KEY 后加 --provider 即可切换到真实大模型，")
-        print(f"          主循环与工具集无需任何改动。")
+        if not forced:
+            print(f"    提示: 设置 DS41_API_KEY / GLM_API_KEY 后加 --provider 即可切换到真实大模型，")
+            print(f"          主循环与工具集无需任何改动。")
 
     # 3. 主循环
     ctx = T.ToolContext(a.out, a.scenario, a.hub)

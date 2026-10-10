@@ -236,8 +236,6 @@ def _env(*names, default=None):
 def detect_provider(prefer: str | None = None):
     """按 prefer → 环境变量顺序挑一个可用 provider；都没有则回落 local。"""
     prefer = (prefer or os.environ.get("GANPO_LLM_PROVIDER", "")).strip().lower()
-    if prefer == "local":
-        return None          # 强制离线：忽略一切已配置密钥，build_planner 回落本地规划器
     cands = []
     ds_key = _env("DS41_API_KEY", "DEEPSEEK_API_KEY")
     glm_key = _env("GLM_API_KEY", "ZHIPU_API_KEY", "ZHIPUAI_API_KEY")
@@ -268,12 +266,9 @@ def build_planner(scenario: str = "holiday", hub: str = "南昌站", prefer: str
     client = detect_provider(prefer)
     if client is None:
         p = LocalDeterministicPlanner(scenario, hub)
-        forced = (prefer or "").strip().lower() == "local"
-        note = ("已通过 --provider local 强制离线，使用本地确定性规划器（协议等价替身）"
-                if forced else
-                "未检测到 API Key，使用离线确定性规划器（协议等价替身）")
         return p, {"mode": "local", "provider": "local", "model": p.model,
-                   "network": False, "note": note}
+                   "network": False,
+                   "note": "未检测到 API Key，使用离线确定性规划器（协议等价替身）"}
     return client, {"mode": "llm", "provider": client.name, "model": client.model,
                     "network": True,
                     "base_url": getattr(client, "base_url", None)}

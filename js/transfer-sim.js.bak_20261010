@@ -13,8 +13,8 @@
   // 南昌站换乘推演（仿真，标注依据）
   // share = 换乘/到达占比；bottleneck = 通道是否拥堵
   var MODES = {
-    weekday:  { arrive: 28000, share: 0.10, tourism: 2800,  bottleneck: false, note: '换乘量 = 到达 28,000 × 换乘占比 10% ≈ 2,800 人次/日，通道畅通。' },
-    holiday:  { arrive: 21000, share: 0.55, tourism: 11550, bottleneck: true,  note: '换乘量 = 到达 21,000 × 换乘占比 55% ≈ 11,550 人次/日，约为工作日 4 倍，通道拥堵风险高，建议加开疏运列车。' }
+    weekday:  { arrive: 28000, share: 0.10, tourism: 3000,  bottleneck: false, note: '工作日通勤为主，换乘占比~10%，通道畅通。' },
+    holiday:  { arrive: 21000, share: 0.55, tourism: 31200, bottleneck: true,  note: '节假日大量通勤客转旅游，换乘占比~55%，通道拥堵风险高，建议加开疏运列车。' }
   };
 
   var state = { map: null, mode: 'weekday', animTimer: null, shown: false, phase: 0 };

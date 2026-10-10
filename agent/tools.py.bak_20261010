@@ -60,21 +60,11 @@ AGENT_TOOLS = [
         "type": "function",
         "function": {
             "name": "guardrail_validate",
-            "description": "调用确定性规则护栏（9 条规则 GR-01…GR-09），校验仿真参数是否合规，"
-                           "越界返回拦截理由与修正建议。param_json 必须使用以下字段名（禁止别名/自造名）："
-                           "headway_min=发车间隔(分钟，4.0–30.0)；formation_cars=编组辆数(2/4/6/8)；"
-                           "limit_level=限流等级(0–3)；demand_mult=需求乘子(0.5–2.0)；"
-                           "可选 fleet_limit=可用配车数(默认480)。四项必填缺一不可。"
-                           "返回 requested → normalized_to → repaired_to 三段留痕。",
+            "description": "调用确定性规则护栏，校验仿真参数是否合规（最小/最大发车间隔、编组上限、"
+                           "限流阈值、三级限流配套疏运等 8 条规则），越界返回拦截理由与修正建议。",
             "parameters": {
                 "type": "object",
-                "properties": {
-                    "param_json": {"type": "object",
-                                   "description": "待校验参数：{headway_min, formation_cars, "
-                                                  "limit_level, demand_mult} 四项必填，可选 fleet_limit"},
-                    "plan_id": {"type": "string",
-                                "description": "关联的候选方案 id（可选）；提供后护栏结论绑定到该方案"},
-                },
+                "properties": {"param_json": {"type": "object", "description": "待校验的参数对象"}},
                 "required": ["param_json"],
             },
         },
@@ -230,50 +220,15 @@ def t_guardrail_validate(ctx: ToolContext, param_json=None, plan_id=None, **kw) 
     if not p:
         return {"ok": False, "error": "param_json 为空", "plan_id": plan_id}
     v = gl.validate(p)
-    _F = ("headway_min", "formation_cars", "limit_level", "demand_mult")
-    # ★ 字段名防呆：LLM 可能用别名（实测用过 headway）。参数域外的键必须留痕并回提示，
-    #   否则 fill_defaults 静默补默认值 → 护栏"什么都没拦" → 三段留痕断链。
-    _KNOWN = {"scenario", "fleet_limit", "hub", "plan_id"} | set(_F)
-    unknown = sorted(k for k in p if k not in _KNOWN)
-    if unknown:
-        v["unknown_fields"] = unknown
-        v["field_warning"] = ("以下字段名不在护栏参数域内（正确字段名：headway_min / "
-                              "formation_cars / limit_level / demand_mult）：" + ", ".join(unknown))
     if not v["passed"]:
         r = gl.repair(p)
         v["repair"] = {"ok": r["ok"], "rounds": r["rounds"],
-                       "effective": {k: r["effective"][k] for k in _F}}
-    # ★ 三段留痕：原始下发 → 规范钳制 → 修复后可执行值（有无 plan_id 都必须落）★
-    #   trace._brief 对 dict/list 值截 200 字符、结果键只保留前 14 个 ——
-    #   因此三段链以「顶层字符串 three_stage」保真（字符串值不被截断），
-    #   applied 结构化数据排在前 14 键内供程序消费，rulebook 等静态参考靠后。
-    raw_asked = {k: p.get(k) for k in _F if k in p}
-    norm_cfg, _rec = S.normalize_config(p)
-    rep_eff = v["repair"]["effective"] if "repair" in v else norm_cfg
-    applied = {
-        "requested": raw_asked,
-        "normalized_to": {k: norm_cfg.get(k) for k in _F},
-        "repaired_to": {k: rep_eff.get(k) for k in _F},
-        "repair_rounds": v.get("repair", {}).get("rounds", 0) if "repair" in v else 0,
-    }
-
-    def _fmt(d):
-        return ("headway_min=%s, formation_cars=%s, limit_level=%s, demand_mult=%s"
-                % tuple(d.get(k, "缺") for k in _F))
-
-    three_stage = ("requested{%s} → normalized{%s} → repaired{%s} (%s 轮)"
-                   % (_fmt(applied["requested"]), _fmt(applied["normalized_to"]),
-                      _fmt(applied["repaired_to"]), applied["repair_rounds"]))
-    out = {"ok": True, "plan_id": plan_id, "passed": v["passed"],
-           "violations": v.get("violations", []),
-           "three_stage": three_stage, "applied": applied}
-    for k in ("repair", "checked_values", "effective", "normalized", "soft_clamped",
-              "unknown_fields", "field_warning", "rules_total", "rulebook",
-              "fleet_check"):
-        if k in v:
-            out[k] = v[k]
-    out["evidence"] = "agent/guardrail.py::RULES（9 条确定性规则）"
-    return out
+                       "effective": {k: r["effective"][k] for k in
+                                     ("headway_min", "formation_cars", "limit_level", "demand_mult")}}
+    v["ok"] = True
+    v["plan_id"] = plan_id
+    v["evidence"] = "agent/guardrail.py::RULES（9 条确定性规则）"
+    return v
 
 
 def t_run_simulation(ctx: ToolContext, config_json=None, sim_engine="auto", hub=None,

@@ -193,42 +193,11 @@ class AgentLoop:
             })
         return out
 
-    def _report_baseline(self) -> dict:
-        """状态机权威 baseline（镜像 _finalize 的 baseline_out 装配）。
-
-        模型回传的 baseline 可能缩写漏字段、甚至整段被 JSON 字符串化；
-        报告数据一律以状态机为准 —— 工具入参里的 baseline 不再被消费。
-        """
-        b = self.state.get("baseline") or {}
-        if not b:
-            return {}
-        return {"config": b.get("config"), "run_id": b.get("run_id"),
-                "metrics": b.get("metrics"),
-                "top_bottlenecks": b.get("top_bottlenecks")}
-
     def _apply(self, tool: str, args: dict, caller: str = "executor") -> dict:
         import time
         if tool == "export_report_markdown":
             args = dict(args or {})
-            # ★ 出报告前强制重算打分：报告必须反映导出时刻的最新状态。
-            # 实测（20261010 回归）：敏感性扫描会改变稳健性得分，「先扫描后导出」
-            # 时旧分会留进报告，造成 md 与决策 JSON 分数不一致。
-            st = self.state
-            if st.get("baseline") is not None:
-                scored_now = []
-                for p in st.get("plans") or []:
-                    if p.get("metrics"):
-                        p["score"] = self._score_plan(p) or p.get("score") or {}
-                        p["delta"] = self._delta(p) or p.get("delta") or {}
-                        scored_now.append(p)
-                if scored_now:
-                    best_now = max(scored_now,
-                                   key=lambda p: (p.get("score") or {}).get("total", 0))
-                    st["recommended_plan"] = best_now
-                    st["narration"] = self._narrate(best_now)
-                    args["recommended"] = best_now["id"]
             args["plans"] = self._report_plans()
-            args["baseline"] = self._report_baseline()
         t0 = time.time()
         result = T.call(self.ctx, tool, args)
         ms = int((time.time() - t0) * 1000)
@@ -332,9 +301,6 @@ class AgentLoop:
         elif tool == "export_report_markdown":
             st["report_path"] = r.get("report_path")
             st["report_done"] = True
-            # 记录导出时的工具调用数：其后若还有调用，说明报告是在链路
-            # 收敛前导出的（陈旧），Critic 与兜底会据此作废重导
-            st["report_at_len"] = len(st.get("tool_log") or [])
 
     # ---------------- Critic ----------------
     def _score_plan(self, p: dict) -> dict:
@@ -441,6 +407,8 @@ class AgentLoop:
         self.trace.critic("evaluate", {p["id"]: p["score"] for p in scored}, reason)
         self.log(f"  ◆ Critic: {reason}")
 
+        if st.get("report_done"):
+            return "done"
         total = (best.get("score") or {}).get("total", 0)
         congr = (best.get("score") or {}).get("congestion", 0)
         # ---- 判定「为何不达标」：逐条列出**真实成立**的条件 ----
@@ -449,9 +417,6 @@ class AgentLoop:
         # 结论要能复核，日志就不能含糊——这里改成逐条陈述。
         reasons = []
         g_passed = (best.get("guardrail") or {}).get("passed")
-        if g_passed is None:
-            # 模型可能未以 plan_id 绑定护栏调用 —— 以 run_simulation 的护栏闸门为准
-            g_passed = (best.get("guardrail_gate") or {}).get("passed")
         if g_passed is False:
             reasons.append(f"最优方案 {best['id']} 的参数触发护栏拦截"
                            f"（{best['id']} 是经修正后才跑通的，不能作为直接推荐）")
@@ -460,14 +425,7 @@ class AgentLoop:
         if congr < ACCEPT_CONGESTION:
             reasons.append(f"拥堵缓解分 {congr} < {ACCEPT_CONGESTION}")
         ok = not reasons
-        # ★ 报告新鲜度：导出之后链路又有演进的报告一律作废（无论达标与否）★
-        if st.get("report_done") and len(st.get("tool_log") or []) > st.get("report_at_len", 0):
-            st["report_done"] = False
-            self.log("  ⚠ 报告早于链路收敛导出（已陈旧）→ 作废，待收敛后重出")
         if ok:
-            # 收工 ⟺ 达标 ∧ 报告已导出且新鲜
-            if st.get("report_done"):
-                return "done"
             # 结论已达标，但**报告尚未导出** —— 交付物不完备就不能结束
             return "continue"
 
@@ -496,9 +454,6 @@ class AgentLoop:
                     "请在下一轮为其执行护栏校验、仿真、读结果与敏感性扫描；"
                     "不要重复调用已完成的工具，也不要改动既有方案。")
                 st["retry"] += 1
-                # 裁定推翻了当前结论 → 既有报告（无论新鲜与否）不再代表最终推荐，
-                # 作废后由规划器 / 补齐 / 交付兜底在链路收敛后重出
-                st["report_done"] = False
                 return "retry"
         # retry 预算用尽仍不达标 → 如实接受，并在 trace 中标注风险（不假装达标）
         self.trace.critic("accept_with_risk",
@@ -773,37 +728,12 @@ class AgentLoop:
             verdict = self._critique()
             if verdict in ("done", "accept"):
                 break
-        # 兜底：LLM 未跑完链路时，用确定性策略补齐，保证交付物完整。
-        # 判据改为「链路完备性」——不再拿 report_done 当链路完成信号：
-        # 真实模型会抢跑导出报告（report_done=True 但方案未仿真/未打分），
-        # 旧判据会让确定性补齐被跳过，产出 recommended=null 的残缺决策。
-        if not self._chain_complete():
-            if self.state.get("report_done"):
-                # 抢跑导出的报告作废：否则 _critique 会提前 done（D 档升级不可达）、
-                # 本地规划器也不再重导（陈旧报告留在盘上，与决策 JSON 自相矛盾）。
-                self.state["report_done"] = False
-                self.log("  ⚠ 检测到链路未完备时抢跑导出的报告 → 作废，补齐后重出")
+        # 兜底：LLM 未跑完链路时，用确定性策略补齐，保证交付物完整
+        if not self.state.get("report_done"):
             self.log("  ⚠ LLM 未跑完完整链路 → 启用确定性补齐（deterministic completion）")
             self.trace.phase("executor", "deterministic_completion",
-                             {"reason": "链路未完备（baseline/方案仿真/打分/推荐缺一即触发），"
-                                        "补齐剩余工具调用以保证交付物完整"})
+                             {"reason": "LLM 轮次/输出不足，补齐剩余工具调用以保证交付物完整"})
             self._deterministic_completion()
-
-    def _chain_complete(self) -> bool:
-        """链路完备性：baseline、全部方案仿真+打分、有推荐，缺一不可。
-
-        ★ 为什么不能用 report_done 判断链路是否完成 ★
-          report_done 只说明「报告导出过」，不说明链路跑完。真实 LLM 会抢跑
-          调 export_report_markdown（实测默认问句第 11 轮就导），若以它为判据，
-          确定性补齐被跳过，决策文档残缺（recommended=null、C 未仿真、无 D）。
-        """
-        st = self.state
-        if not st.get("baseline") or not st.get("recommended_plan"):
-            return False
-        plans = st.get("plans") or []
-        return bool(plans) and all(
-            p.get("run_id") and p.get("metrics") and p.get("score") is not None
-            for p in plans)
 
     def _deterministic_completion(self) -> None:
         """用离线策略补齐缺失的工具调用。
